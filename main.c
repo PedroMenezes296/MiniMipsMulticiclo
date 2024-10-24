@@ -9,14 +9,21 @@ int main(){
     //Declara��o de structs
     struct instrucao *inst_name = malloc(256 * sizeof(struct instrucao)); //alocando dinamicamente a mem�ria para receber 256 espa�os de mem do tipo instrucao
     struct estado_salvo estado;
+    struct instrucao RI;
 
     //Declara��o de vari�veis
     int num_opcao = 0;                        //Controla o menu
-    int PC = 0;                               //Vari�vel que controla o valor do PC durante a execu��o do programa
+    int PC = 0;                                 //Vari�vel que controla o valor do PC durante a execu��o do programa
+    int estado_c = 0; 
+    int reg_A = 0;
+    int reg_B = 0;
+    int reg_ULA = 0;
     int memoria_instrucoes_carregada = 0;     //Indica se as mem�rias de instru��es foi carregada
     int banco_de_registradores[8] = {0};      //Inicializa o banco de rg
     int tamanho = 0;                          //vari�vel utilizada em algumas fun��es da mem�ria de dados
-
+    banco_de_registradores[1] = 2;
+    banco_de_registradores[2] = 2;
+    banco_de_registradores[4] = 5;
     //Inicio do menu
     while(num_opcao != 10){
     printf("\n");
@@ -116,10 +123,11 @@ int main(){
                         Executar_Instrucao(&PC, inst_name, banco_de_registradores);
                         printf("********Proxima Instrucao********\n\n");
                         printf("\tPC = %d\n", PC);
-                    } else {                                                                             // se n�o for, ele incrementa o PC ap�s a instru��o ser executada
-                        Salva_Estado(&PC, inst_name, &estado, banco_de_registradores);
-                        Executar_Instrucao(&PC, inst_name, banco_de_registradores);
-                        printf("********Proxima Instrucao********\n\n");
+                    } else {
+                        Ciclo(&reg_ULA, &reg_A, &reg_B, &estado_c, &PC, &RI, inst_name, banco_de_registradores);
+                        imprime_estado(&reg_ULA, &reg_A, &reg_B, &estado_c, &RI, banco_de_registradores);
+                        Executar_Instrucao_M(&reg_A, &reg_B, &estado_c, &PC, &RI);
+                        estado_M(&estado_c, &RI);
                         printf("\tPC = %d\n", PC);
                     }
                 } else {

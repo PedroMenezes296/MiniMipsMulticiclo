@@ -572,3 +572,153 @@ void Retorna_Estado(struct estado_salvo *estado, int *PC, struct instrucao *inst
         inst_name[i] = estado->copia_memoria[i];
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+//INSTRUCOES MULTICICLO
+
+
+
+void Executar_Instrucao_M(int *reg_A, int *reg_B, int *estado_c, int *PC, struct instrucao *RI) {   //Executa as instru��es
+    if(RI->opcode == 2) {
+         printf("\tInstrucao nao gerou valor de resultado.\n\n");
+        *PC = RI->addr;                                                     //realiza as do tipo J, alterando diretamente o PC
+    }
+    else if(RI->opcode == -1) {                                            // se o opcode estiver como -1, indica que n�o h� mais instru��es v�lidas
+            printf("\tPC esta apontando para um campo vazio!\n\n");
+    }
+    else if(RI->opcode != 8){
+        int resultado = Calculos_ULA_M(reg_A, reg_B, estado_c, PC, RI);                    // chama a fun��o da ula que verifica o opcode e executa a opera��o
+            printf("\tResultado da ULA: %d\n\n", resultado);
+        }else{
+            Calculos_ULA_M(reg_A, reg_B, estado_c, PC, RI);
+        }
+}
+
+void Ciclo(int *reg_ULA, int *reg_A, int *reg_B, int *estado_c, int *PC, struct instrucao *RI, struct instrucao *inst_name,  int *banco_de_registradores){
+    if(*estado_c == 0){
+        if(inst_name[*PC].opcode != -1){
+        *RI = inst_name[*PC];
+}
+    }
+    if(*estado_c == 1){
+        *reg_A = Ler_Registrador(banco_de_registradores, RI->rs);
+        *reg_B = Ler_Registrador(banco_de_registradores, RI->rt);
+        *reg_ULA = Calculos_ULA_M(reg_A, reg_B, estado_c, PC, RI);
+    }
+    if(*estado_c == 7){
+        *reg_ULA = Calculos_ULA_M(reg_A, reg_B, estado_c, PC, RI);
+    }
+    if(*estado_c == 8){
+        Escrever_Registrador(banco_de_registradores, RI->rd, *reg_ULA);
+    }
+}
+
+void estado_M(int *estado_c, struct instrucao *RI){
+    if(*estado_c == 8){
+            (*estado_c) = 0;
+    }
+    else if(*estado_c == 7){
+            (*estado_c) = 8;
+    }
+    else if(*estado_c == 1){
+        if(RI->opcode == 0){
+            (*estado_c) = 7;
+        }
+    }
+    else if(*estado_c == 0){
+            (*estado_c) = 1; 
+    }
+}
+
+void imprime_estado(int *reg_ULA, int *reg_A, int *reg_B, int *estado_c, struct instrucao *RI, int *banco_de_registradores){
+        if(*estado_c == 0){
+            if (RI->opcode == -1) {}
+            else if (RI->opcode == 0) {
+                printf("\tTipo R - opcode: %d, rs: %d, rt: %d, rd: %d, funct: %d\n", RI->opcode, RI->rs, RI->rt, RI->rd, RI->funct);
+            }
+            else if(RI->opcode == 2) {
+                printf("\tTipo J - opcode: %d, addr: %d\n", RI->opcode, RI->addr);
+            }
+            else if(RI->opcode == 8) {
+                printf("\tTipo BEQ - opcode: %d, rs: %d, rt: %d, imm: %d\n", RI->opcode, RI->rs, RI->rt, RI->imm);
+            }
+            else if(RI->opcode == 15) {
+                printf("\tTipo SW - opcode: %d, rs: %d, rt: %d, imm: %d\n", RI->opcode, RI->rs, RI->rt, RI->imm);
+            }
+            else if(RI->opcode == 11) {
+                    printf("\tTipo LW - opcode: %d, rs: %d, rt: %d, imm: %d\n", RI->opcode, RI->rs, RI->rt, RI->imm);
+            }
+            else if(RI->opcode == 4) {
+                    printf("\tTipo ADDI - opcode: %d, rs: %d, rt: %d, imm: %d\n", RI->opcode, RI->rs, RI->rt, RI->imm);
+            }
+            else{
+                printf("Tipo de instrucao invalida!\n");
+            }
+            printf("\tEstado atual [%d]\n", *estado_c);
+        }else if(*estado_c == 1){
+            printf("\tRegistrador A [%d]\n", *reg_A);
+            printf("\tRegistrador B [%d]\n", *reg_B);
+            printf("\tEstado atual [%d]\n", *estado_c);
+        }else if(*estado_c == 7){
+            printf("\tSaida da ULA [%d]\n", *reg_ULA);
+            printf("\tEstado atual [%d]\n", *estado_c);
+        }else if(*estado_c == 8){
+            Imprimir_BancoRG(banco_de_registradores);
+            printf("\tEstado atual [%d]\n", *estado_c);
+        }
+
+}
+
+int Calculos_ULA_M(int *reg_A, int *reg_B, int *estado_c, int *PC, struct instrucao *RI) { //Executa os c�lculos
+
+    int resultado = 0;
+
+    if(*estado_c == 7){
+        if(RI->opcode == 0) { //Tipo R
+            switch(RI->funct) {                                                                                                        // faz a verifica��o do campo funct para informar qual opera��o realizar
+        case 0:     //soma
+            resultado = *reg_A + *reg_B; //faz a soma dos valores armazenados em rs e rt
+                if(resultado >127 || resultado <-128){
+                printf("\tOverflow. O resultado nao foi armazenado!\n");
+            }
+            break;
+
+        case 2:     //sub
+            resultado = *reg_A - *reg_B;
+                if(resultado >127 || resultado <-128){
+                printf("\tOverflow. O resultado n�o foi armazenado!\n");
+            }
+
+        case 4:     //and
+            resultado = *reg_A & *reg_B;
+                if(resultado >127 || resultado <-128){
+                printf("\tOverflow. O resultado nao foi armazenado!\n");
+            }
+
+        case 5:     //or
+            resultado = *reg_A | *reg_B;
+                if(resultado >127 || resultado <-128){
+                printf("\tOverflow. O resultado nao foi armazenado!\n");
+            }
+            break;
+                }
+            }
+     }
+    if(*estado_c == 0){
+        (*PC)++;
+        resultado = *PC;
+    }
+    return resultado;
+}
+
+
