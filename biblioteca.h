@@ -13,11 +13,10 @@ struct instrucao {
     int addr;
     int dado;
 };
-
-int reg_dado;
-
-struct instrucao RI;
-
+struct ULA_saida {
+    int reg_ULA;
+    int flag;
+};
 
 struct estado_salvo {
     int copia_PC;
@@ -39,13 +38,14 @@ int Calculos_ULA(int *PC, struct instrucao *inst_name, int *banco_de_registrador
 
 int Calculos_ULA_M(int *reg_A, int *reg_B, int *estado_c, int *PC, struct instrucao *RI);
 
-void Ciclo(int *reg_ULA, int *reg_A, int *reg_B, int *estado_c, int *PC,struct instrucao *RI , struct instrucao *inst_name, int *banco_de_registradores);
+void Ciclo(int *reg_dado, struct ULA_saida *saida, int *reg_A, int *reg_B, int *estado_c, int *PC,struct instrucao *RI , struct instrucao *inst_name, int *banco_de_registradores);
 
 void Executar_Instrucao_M(int *reg_A, int *reg_B, int *estado_c, int *PC, struct instrucao *RI);
 
 void estado_M(int *estado_c, struct instrucao *inst_M);
 
-void imprime_estado(int *reg_ULA, int *reg_A, int *reg_B, int *estado_c, struct instrucao *RI, int *banco_de_registradores);
+void imprime_estado(int *reg_dado, struct ULA_saida *saida, int *reg_A, int *reg_B, int *estado_c, struct instrucao *RI, int *banco_de_registradores);
+
 
 
 void Imprimir_Memorias_Instrucoes(struct instrucao *inst_name);
@@ -58,7 +58,7 @@ void Escrever_Memoria_Dados(int endereco, int valor, struct instrucao *inst_name
 
 int Ler_Memoria_Dados(int endereco, struct instrucao *inst_name);
 
-void Salva_Dado(struct instrucao *inst_name, int *tamanho);
+void Salva_Memoria(struct instrucao *inst_name, int *tamanho);
 
 void Salva_Asm(struct instrucao *inst_name);
 

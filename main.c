@@ -3,27 +3,27 @@
 #include <locale.h>
 #include "biblioteca.h"
 
+
 int main(){
     setlocale(LC_ALL, "Portuguese");
 
     //Declara��o de structs
     struct instrucao *inst_name = malloc(256 * sizeof(struct instrucao)); //alocando dinamicamente a mem�ria para receber 256 espa�os de mem do tipo instrucao
     struct estado_salvo estado;
+    struct ULA_saida saida;
     struct instrucao RI;
 
     //Declara��o de vari�veis
     int num_opcao = 0;                        //Controla o menu
     int PC = 0;                                 //Vari�vel que controla o valor do PC durante a execu��o do programa
-    int estado_c = 0; 
+    int estado_c = 0;
     int reg_A = 0;
     int reg_B = 0;
-    int reg_ULA = 0;
+    int reg_dado = 0;
     int memoria_instrucoes_carregada = 0;     //Indica se as mem�rias de instru��es foi carregada
     int banco_de_registradores[8] = {0};      //Inicializa o banco de rg
-    int tamanho = 0;                          //vari�vel utilizada em algumas fun��es da mem�ria de dados
-    banco_de_registradores[1] = 2;
-    banco_de_registradores[2] = 2;
-    banco_de_registradores[4] = 5;
+    int tamanho = 0;                       //vari�vel utilizada em algumas fun��es da mem�ria de dados
+    banco_de_registradores[1]=2;
     //Inicio do menu
     while(num_opcao != 10){
     printf("\n");
@@ -34,7 +34,7 @@ int main(){
     printf("\t(3)  Imprimir banco de registradores.\n");
     printf("\t(4)  Imprimir todo o simulador (registradores e memorias).\n"); //(registradores e memorias)
     printf("\t(5)  Salvar .asm\n");
-    printf("\t(6)  Salvar .dat\n");
+    printf("\t(6)  Salvar .mem\n");
     printf("\t(7)  Executar Programa.\n"); //run
     printf("\t(8)  Executar uma instrucao.\n"); //step
     printf("\t(9)  Voltar uma instrucao.\n"); //back
@@ -93,7 +93,7 @@ int main(){
                 break;
 
             case 6 :
-                    Salva_Dado(inst_name, &tamanho);
+                    Salva_Memoria(inst_name, &tamanho);
                 break;
 
             case 7 :
@@ -124,8 +124,8 @@ int main(){
                         printf("********Proxima Instrucao********\n\n");
                         printf("\tPC = %d\n", PC);
                     } else {
-                        Ciclo(&reg_ULA, &reg_A, &reg_B, &estado_c, &PC, &RI, inst_name, banco_de_registradores);
-                        imprime_estado(&reg_ULA, &reg_A, &reg_B, &estado_c, &RI, banco_de_registradores);
+                        Ciclo(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &PC, &RI, inst_name, banco_de_registradores);
+                        imprime_estado(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &RI, banco_de_registradores);
                         Executar_Instrucao_M(&reg_A, &reg_B, &estado_c, &PC, &RI);
                         estado_M(&estado_c, &RI);
                         printf("\tPC = %d\n", PC);
