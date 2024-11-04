@@ -302,114 +302,6 @@ void Imprimir_BancoRG(int *banco_de_registradores) {                   //imprime
     printf("\n");
 }
 
-//**Modelagem do banco de registradores**//
-
-int Calculos_ULA(int *PC, struct instrucao *inst_name, int *banco_de_registradores) { //Executa os c�lculos
-
-    int resultado = 0;
-
-    if(inst_name[*PC].opcode == 0) { //Tipo R
-
-        switch(inst_name[*PC].funct) {                                                                                                        // faz a verifica��o do campo funct para informar qual opera��o realizar
-    case 0:     //soma
-        resultado = Ler_Registrador(banco_de_registradores, inst_name[*PC].rs) + Ler_Registrador(banco_de_registradores, inst_name[*PC].rt); //faz a soma dos valores armazenados em rs e rt
-            if(resultado >127 || resultado <-128){
-            printf("\tOverflow. O resultado nao foi armazenado!\n");
-        }else{
-            Escrever_Registrador(banco_de_registradores, inst_name[*PC].rd, resultado);                                                          //guarda o resultado no registrador indicado por rd
-        }
-        break;
-
-    case 2:     //sub
-        resultado = Ler_Registrador(banco_de_registradores, inst_name[*PC].rs) - Ler_Registrador(banco_de_registradores, inst_name[*PC].rt);
-            if(resultado >127 || resultado <-128){
-            printf("\tOverflow. O resultado n�o foi armazenado!\n");
-        }else{
-            Escrever_Registrador(banco_de_registradores, inst_name[*PC].rd, resultado);
-        }
-        break;
-
-    case 4:     //and
-        resultado = Ler_Registrador(banco_de_registradores, inst_name[*PC].rs) & Ler_Registrador(banco_de_registradores, inst_name[*PC].rt);
-            if(resultado >127 || resultado <-128){
-            printf("\tOverflow. O resultado nao foi armazenado!\n");
-        }else{
-            Escrever_Registrador(banco_de_registradores, inst_name[*PC].rd, resultado);
-        }
-        break;
-
-    case 5:     //or
-        resultado = Ler_Registrador(banco_de_registradores, inst_name[*PC].rs) | Ler_Registrador(banco_de_registradores, inst_name[*PC].rt);
-            if(resultado >127 || resultado <-128){
-            printf("\tOverflow. O resultado nao foi armazenado!\n");
-        }else{
-            Escrever_Registrador(banco_de_registradores, inst_name[*PC].rd, resultado);
-        }
-         break;
-        }
-        (*PC)++;
-    }
-    else if(inst_name[*PC].opcode == 4) { //Tipo I Addi
-        resultado = Ler_Registrador(banco_de_registradores, inst_name[*PC].rs) + inst_name[*PC].imm;  //faz a soma com o valor imm que pode ser negativo
-        if(resultado >127 || resultado <-128){
-            printf("\tOverflow. O resultado nao foi armazenado\n");
-        }
-        else{
-        Escrever_Registrador(banco_de_registradores, inst_name[*PC].rt, resultado); //se n�o tiver overflow, guarda o resultado no registrador indicado por rt
-        }
-        (*PC)++;
-    }
-    else if(inst_name[*PC].opcode == 8) {   //Tipo I Beq
-        if(Ler_Registrador(banco_de_registradores, inst_name[*PC].rs) == Ler_Registrador(banco_de_registradores, inst_name[*PC].rt)){ //verifica se os valores armazenados nos registradores s�o iguais
-            printf("\tInstrucao nao gerou valor de resultado.\n\n");
-            *PC += inst_name[*PC].imm;      //se forem iguais, PC eh atualizado com um novo valor
-        }
-        else{
-            printf("\tInstrucao nao gerou valor de resultado.\n\n");
-            (*PC)++;                        // se n�o forem iguais, incrementa para a pr�xima instru��o
-        }
-    }
-    else if(inst_name[*PC].opcode == 11){ //Tipo I LW
-        resultado = Ler_Registrador(banco_de_registradores, inst_name[*PC].rs) + inst_name[*PC].imm;                // endere�o = rs + imm
-        if(resultado < 0 || resultado > 255){
-            printf("\tEndereco de memoria invalido!\n");
-        }else{
-        Escrever_Registrador(banco_de_registradores, inst_name[*PC].rt, Ler_Memoria_Dados(resultado, inst_name));      // armazena no registrador
-        }
-        (*PC)++;
-    }
-    else if(inst_name[*PC].opcode == 15){//Tipo I SW
-        resultado = Ler_Registrador(banco_de_registradores, inst_name[*PC].rs) + inst_name[*PC].imm;                // endere�o = rs + imm. L� da mem�ria e armazena no registrador
-        if(resultado < 0 || resultado > 255){
-            printf("\tEndereco de memoria invalido!\n");
-        }else{
-        Escrever_Memoria_Dados(resultado, Ler_Registrador(banco_de_registradores, inst_name[*PC].rt), inst_name);      // Armazena na mem�ria de dados
-        }
-        (*PC)++;
-    }
-    return resultado;
-}
-
-void Executar_Instrucao(int *PC, struct instrucao *inst_name, int *banco_de_registradores) {   //Executa as instru��es
-
-    Visualizar_Instrucao_Atual(PC, inst_name);
-
-    if(inst_name[*PC].opcode == 2) {
-         printf("\tInstrucao nao gerou valor de resultado.\n\n");
-        *PC = inst_name[*PC].addr;                                                     //realiza as do tipo J, alterando diretamente o PC
-    }
-    else if(inst_name[*PC].opcode == -1) {                                            // se o opcode estiver como -1, indica que n�o h� mais instru��es v�lidas
-            printf("\tPC esta apontando para um campo vazio!\n\n");
-    }
-    else if(inst_name[*PC].opcode != 8){
-        int resultado = Calculos_ULA(PC, inst_name, banco_de_registradores);                    // chama a fun��o da ula que verifica o opcode e executa a opera��o
-            printf("\tResultado da ULA: %d\n\n", resultado);
-        }else{
-            Calculos_ULA(PC, inst_name, banco_de_registradores);
-        }
-    Imprimir_BancoRG(banco_de_registradores);
-}
-
 int Ler_Memoria_Dados(int endereco, struct instrucao *inst_name){
     if (endereco < 0 || endereco >= 256) {
         printf("\tEndereco invalido.\n");
@@ -484,7 +376,7 @@ void Salva_Memoria(struct instrucao *inst_name, int *tamanho){
                 }
                     fprintf(file,"%d\n",bin[7]);
         }
-        
+
         fclose(file);
 }
 
@@ -556,6 +448,16 @@ void Salva_Memoria(struct instrucao *inst_name, int *tamanho){
         fclose(arq2);
  }
 
+void imprime_simulador(int *reg_dado, struct ULA_saida *saida, int *reg_A, int *reg_B, int *estado_c, struct instrucao *RI){
+            printf("\topcode: %d, rs: %d, rt: %d, rd: %d, funct: %d, imm: %d, addr: %d\n", RI->opcode, RI->rs, RI->rt, RI->rd, RI->funct, RI->imm, RI->addr);
+            printf("\tRegistrador de dados [%d]\n", *reg_dado);
+            printf("\tRegistrador A $t%d[%d]\n", RI->rs, *reg_A);
+            printf("\tRegistrador B $t%d[%d]\n", RI->rt,*reg_B);
+            printf("\tRegistrador da ULA [%d]\n", saida->reg_ULA);
+            printf("\tRegistrador da ULA_Flag [%d]\n", saida->flag);
+            printf("\tEstado atual [%d]\n", *estado_c);
+}
+
 void Visualizar_Instrucao_Atual(int *PC, struct instrucao *inst_name){
 
         printf("****************--INSTRUCAO ATUAL--****************\n\n");
@@ -586,44 +488,6 @@ void Visualizar_Instrucao_Atual(int *PC, struct instrucao *inst_name){
             }
         printf("\n");
  }
-
-void Salva_Estado(int *PC, struct instrucao *inst_name, struct estado_salvo *estado, int *banco_de_registradores) {
-    // Salvar o PC
-    estado->copia_PC = *PC;
-
-    // Salvar o estado dos registradores
-    for (int i = 0; i < 8; i++) {
-        estado->copia_banco_de_registradores[i] = banco_de_registradores[i];
-    }
-
-    // Salvar o estado da mem�ria
-    for (int i = 0; i < 256; i++) {
-        estado->copia_memoria[i] = inst_name[i];
-    }
-}
-
-void Retorna_Estado(struct estado_salvo *estado, int *PC, struct instrucao *inst_name, int *banco_de_registradores) {
-    // Restaurar o PC
-    *PC = estado->copia_PC;
-
-    // Restaurar os registradores
-    for (int i = 0; i < 8; i++) {
-        banco_de_registradores[i] = estado->copia_banco_de_registradores[i];
-    }
-
-    // Restaurar a mem�ria
-    for (int i = 0; i < 256; i++) {
-        inst_name[i] = estado->copia_memoria[i];
-    }
-}
-
-
-
-
-
-
-
-
 
 void Executar_Instrucao_M(int *reg_A, int *reg_B, int *estado_c, int *PC, struct instrucao *RI) {   //Executa as instru��es
     if(RI->opcode == 2) {
@@ -665,6 +529,10 @@ void Ciclo(int *reg_dado, struct ULA_saida *saida, int *reg_A, int *reg_B, int *
         Escrever_Memoria_Dados(saida->reg_ULA, *reg_B, inst_name);
         *reg_dado = Ler_Memoria_Dados(saida->reg_ULA, inst_name);
     }
+    if(*estado_c == 6){
+		*reg_B = saida->reg_ULA;
+		Escrever_Registrador(banco_de_registradores, RI->rt , *reg_B);
+	}
     if(*estado_c == 7){
         saida->reg_ULA = Calculos_ULA_M(reg_A, reg_B, estado_c, PC, RI);
     }
@@ -683,9 +551,10 @@ void estado_M(int *estado_c, struct instrucao *RI){
             if(RI->opcode == 0) {
                 *estado_c = 7;
             }
-            else if(RI->opcode == 15 || RI->opcode == 11) {
+            else if(RI->opcode == 15 || RI->opcode == 11 || RI->opcode == 4) {
                 *estado_c = 2;
             }
+
             break;
 
         case 2:
@@ -693,6 +562,8 @@ void estado_M(int *estado_c, struct instrucao *RI){
                 *estado_c = 5;
             }else if(RI->opcode == 11) {
                 *estado_c = 3;
+            }else if(RI->opcode == 4) {
+                *estado_c = 6;
             }
             break;
         case 3:
@@ -708,7 +579,10 @@ void estado_M(int *estado_c, struct instrucao *RI){
             *estado_c = 0;
 
             break;
+		case 6:
+            *estado_c = 0;
 
+            break;
         case 7:
             *estado_c = 8;
             break;
@@ -769,6 +643,11 @@ void imprime_estado(int *reg_dado, struct ULA_saida *saida, int *reg_A, int *reg
             printf("\tDado escrito [%d]\n", *reg_dado);
             printf("\tRegistrador da ULA [%d]\n", saida->reg_ULA);
             printf("\tEstado atual [%d]\n", *estado_c);
+        }else if(*estado_c == 6){
+            Imprimir_BancoRG(banco_de_registradores);
+            printf("\tDado escrito [%d]\n", *reg_B);
+            printf("\tRegistrador da ULA [%d]\n", saida->reg_ULA);
+            printf("\tEstado atual [%d]\n", *estado_c);
         }else if(*estado_c == 7){
             printf("\tRegistrador da ULA [%d]\n", saida->reg_ULA);
             printf("\tEstado atual [%d]\n", *estado_c);
@@ -788,6 +667,9 @@ int Calculos_ULA_M(int *reg_A, int *reg_B, int *estado_c, int *PC, struct instru
         resultado = *PC;
     }
     if(*estado_c == 1){
+		if(RI->opcode==0){
+			RI->imm=0;
+			}
         resultado = *PC + RI->imm;
     }
 
@@ -822,9 +704,9 @@ int Calculos_ULA_M(int *reg_A, int *reg_B, int *estado_c, int *PC, struct instru
                 }
             }
      }
-     else if(*estado_c == 2){  // estado para tipo SW e LW
+     else if(*estado_c == 2){  // estado para tipo SW, LW e ADDI
         resultado = *reg_A + RI->imm; // endere�o = rs + imm. L� da mem�ria e armazena no registrador
-        if(resultado < 0 || resultado > 255){
+        if(resultado >127 || resultado <-128){
             printf("\tEndereco de memoria invalido!\n");
         }
     }
@@ -832,4 +714,54 @@ int Calculos_ULA_M(int *reg_A, int *reg_B, int *estado_c, int *PC, struct instru
     return resultado;
 }
 
+void Salva_Estado(int *PC, struct instrucao *inst_name, struct estado_salvo *estado,
+                  int *banco_de_registradores, int *reg_dado, int *reg_A, int *reg_B, int *estado_c,
+                  struct instrucao *RI,  struct instrucao *copia_RI, struct ULA_saida *saida, struct ULA_saida *copia_saida) {
 
+    estado->copia_PC = *PC;
+    estado->copia_RGdados = *reg_dado;
+    estado->copia_RGa = *reg_A;
+    estado->copia_RGb = *reg_B;
+    estado->copia_estado_c = *estado_c;
+
+    // Salvar o estado dos registradores
+    for (int i = 0; i < 8; i++) {
+        estado->copia_banco_de_registradores[i] = banco_de_registradores[i];
+    }
+
+    // Salvar o estado da memoria
+    for (int i = 0; i < 256; i++) {
+        estado->copia_memoria[i] = inst_name[i];
+    }
+
+    memcpy(copia_RI, RI, sizeof(struct instrucao)); // Copia todos os bytes da estrutura instrucao, os dados de RI são passados para copia_RI
+    memcpy(copia_saida, saida, sizeof(struct ULA_saida));
+
+}
+
+void Restaurar_Estado(struct estado_salvo *estado, int *PC, int *reg_dado, int *reg_A, int *reg_B, int *estado_c,
+                      int *banco_de_registradores, struct instrucao *inst_name,
+                      struct instrucao *copia_RI, struct ULA_saida *copia_saida) {
+
+    *PC = estado->copia_PC;
+    *reg_dado = estado->copia_RGdados;
+    *reg_A = estado->copia_RGa;
+    *reg_B = estado->copia_RGb;
+    *estado_c = estado->copia_estado_c;
+
+    // Restaurar o estado dos registradores
+    for (int i = 0; i < 8; i++) {
+        banco_de_registradores[i] = estado->copia_banco_de_registradores[i];
+    }
+
+    // Restaurar a memória
+    for (int i = 0; i < 256; i++) {
+        inst_name[i] = estado->copia_memoria[i];
+    }
+
+    // Restaurar o registrador de instruções (RI)
+    memcpy(copia_RI, &estado->copia_RI, sizeof(struct instrucao));
+
+    // Restaurar o resultado da ULA
+    memcpy(copia_saida, &estado->copia_saida, sizeof(struct ULA_saida));
+}

@@ -3,7 +3,6 @@
 #include <locale.h>
 #include "biblioteca.h"
 
-
 int main(){
     setlocale(LC_ALL, "Portuguese");
 
@@ -11,7 +10,9 @@ int main(){
     struct instrucao *inst_name = malloc(256 * sizeof(struct instrucao)); //alocando dinamicamente a mem�ria para receber 256 espa�os de mem do tipo instrucao
     struct estado_salvo estado;
     struct ULA_saida saida;
+    struct ULA_saida copia_saida;
     struct instrucao RI;
+    struct instrucao copia_RI;
 
     //Declara��o de vari�veis
     int num_opcao = 0;                        //Controla o menu
@@ -23,7 +24,7 @@ int main(){
     int memoria_instrucoes_carregada = 0;     //Indica se as mem�rias de instru��es foi carregada
     int banco_de_registradores[8] = {0};      //Inicializa o banco de rg
     int tamanho = 0;                       //vari�vel utilizada em algumas fun��es da mem�ria de dados
-    banco_de_registradores[1]=2;
+
     //Inicio do menu
     while(num_opcao != 10){
     printf("\n");
@@ -69,8 +70,9 @@ int main(){
                 break;
 
             case 4 :
-                Visualizar_Instrucao_Atual(&PC, inst_name);
                 printf("\tPC = %d\n", PC);
+                imprime_simulador(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &RI);
+                Visualizar_Instrucao_Atual(&PC, inst_name);
                 Imprimir_BancoRG(banco_de_registradores);
                 if (memoria_instrucoes_carregada == 1) {
                 printf("********Memoria de Instrucoes********\n\n");
@@ -98,32 +100,8 @@ int main(){
 
             case 7 :
                 if (memoria_instrucoes_carregada == 1) {
-                    while (PC < 256 && inst_name[PC].opcode != -1) {                                    // Programa roda at� n�o haver mais instru��es
-                        if (inst_name[PC].opcode == 2 || inst_name[PC].opcode == 8) {                   // se for do tipo J ou BEQ, ele realiza a mudan�a no PC diretamente pelas fun��es
-                            Salva_Estado(&PC, inst_name, &estado, banco_de_registradores);
-                            Executar_Instrucao(&PC, inst_name, banco_de_registradores);
-                            printf("********Proxima Instrucao********\n\n");
-                            printf("\tPC = %d\n\n", PC);
-                        } else {
-                            Salva_Estado(&PC, inst_name, &estado, banco_de_registradores);
-                            Executar_Instrucao(&PC, inst_name, banco_de_registradores);
-                            printf("********Proxima Instrucao********\n\n");
-                            printf("\tPC = %d\n\n", PC);
-                        }
-                    }
-                } else {
-                    printf("\tMemorias de instrucoes nao foi carregada.\n");
-                }
-                break;
-
-            case 8 :
-                if (memoria_instrucoes_carregada == 1) {
-                    if (inst_name[PC].opcode == 2 || inst_name[PC].opcode == 8) {                        // se for do tipo J ou BEQ, ele realiza a mudan�a do PC diretamente pelas fun��es
-                        Salva_Estado(&PC, inst_name, &estado, banco_de_registradores);
-                        Executar_Instrucao(&PC, inst_name, banco_de_registradores);
-                        printf("********Proxima Instrucao********\n\n");
-                        printf("\tPC = %d\n", PC);
-                    } else {
+                    while (PC < 256 && inst_name[PC].opcode != -1) {
+                        Salva_Estado(&PC, inst_name, &estado, banco_de_registradores, &reg_dado, &reg_A, &reg_B, &estado_c, &RI, &copia_RI, &saida, &copia_saida);
                         Ciclo(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &PC, &RI, inst_name, banco_de_registradores);
                         imprime_estado(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &RI, banco_de_registradores);
                         Executar_Instrucao_M(&reg_A, &reg_B, &estado_c, &PC, &RI);
@@ -135,13 +113,28 @@ int main(){
                 }
                 break;
 
+            case 8 :
+                if (memoria_instrucoes_carregada == 1) {
+                        Salva_Estado(&PC, inst_name, &estado, banco_de_registradores, &reg_dado, &reg_A, &reg_B, &estado_c, &RI, &copia_RI, &saida, &copia_saida);
+                        Ciclo(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &PC, &RI, inst_name, banco_de_registradores);
+                        imprime_estado(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &RI, banco_de_registradores);
+                        Executar_Instrucao_M(&reg_A, &reg_B, &estado_c, &PC, &RI);
+                        estado_M(&estado_c, &RI);
+                        printf("\tPC = %d\n", PC);
+
+                } else {
+                    printf("\tMemorias de instrucoes nao foi carregada.\n");
+                }
+                break;
+
             case 9 :
                 if(PC == 0){
                     printf("\tNao e possivel retornar uma instrucao\n\n");
                 }
                 else{
-                    Retorna_Estado(&estado, &PC, inst_name, banco_de_registradores);
-                    printf("\tPC = %d\n", PC);
+                     Restaurar_Estado(&estado, &PC, &reg_dado, &reg_A, &reg_B, &estado_c, banco_de_registradores, inst_name, &copia_RI, &copia_saida);
+                     imprime_estado(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &RI, banco_de_registradores);
+                     printf("\tPC = %d\n", PC);
                 }
 
                 break;
