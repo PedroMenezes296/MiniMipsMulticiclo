@@ -61,7 +61,7 @@ void Ciclo(int *reg_dado, struct ULA_saida *saida, int *reg_A, int *reg_B, int *
 
 void estado_M(int *estado_c, struct instrucao *inst_M);
 
-void imprime_estado(int *reg_dado, struct ULA_saida *saida, int *reg_A, int *reg_B, int *estado_c, struct instrucao *RI, int *banco_de_registradores, int *PC);
+void imprime_estado(int *reg_dado, struct ULA_saida *saida, int *reg_A, int *reg_B, int *estado_c, struct instrucao *RI, int *banco_de_registradores);
 
 int Calculos_ULA_M(int *reg_A, int *reg_B, int *estado_c, int *PC, struct instrucao *RI, struct ULA_saida *saida);
 

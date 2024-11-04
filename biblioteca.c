@@ -490,8 +490,10 @@ void Visualizar_Instrucao_Atual(int *PC, struct instrucao *inst_name){
  }
 
 void Executar_Instrucao_M(int *reg_A, int *reg_B, int *estado_c, int *PC, struct instrucao *RI, struct ULA_saida *saida) {   //Executa as instru��es
-    
-    if(RI->opcode == -1) {                                            // se o opcode estiver como -1, indica que n�o h� mais instru��es v�lidas
+    if(RI->opcode == 2) {
+         printf("\tInstrucao nao gerou valor de resultado.\n\n");
+    }
+    else if(RI->opcode == -1) {                                            // se o opcode estiver como -1, indica que n�o h� mais instru��es v�lidas
             printf("\tPC esta apontando para um campo vazio!\n\n");
     }
     else if(RI->opcode != 8){
@@ -507,16 +509,14 @@ void Ciclo(int *reg_dado, struct ULA_saida *saida, int *reg_A, int *reg_B, int *
     if(*estado_c == 0){
         if(inst_name[*PC].opcode != -1){
         *RI = inst_name[*PC];
-}else if(saida->flag == 1){
-		*RI = inst_name[*PC-1];
-	}
+}
     }
     if(*estado_c == 1){
         *reg_A = Ler_Registrador(banco_de_registradores, RI->rs);
         *reg_B = Ler_Registrador(banco_de_registradores, RI->rt);
-        saida->reg_ULA = Calculos_ULA_M(reg_A, reg_B, estado_c, PC, RI,saida);
+        saida->reg_ULA = Calculos_ULA_M(reg_A, reg_B, estado_c, PC, RI, saida);
     }if(*estado_c == 2){
-        saida->reg_ULA = Calculos_ULA_M(reg_A, reg_B, estado_c, PC, RI,saida);
+        saida->reg_ULA = Calculos_ULA_M(reg_A, reg_B, estado_c, PC, RI, saida);
     }
     if(*estado_c == 3){
         *reg_dado = Ler_Memoria_Dados(saida->reg_ULA, inst_name);
@@ -533,21 +533,20 @@ void Ciclo(int *reg_dado, struct ULA_saida *saida, int *reg_A, int *reg_B, int *
 		Escrever_Registrador(banco_de_registradores, RI->rt , *reg_B);
 	}
     if(*estado_c == 7){
-        saida->reg_ULA = Calculos_ULA_M(reg_A, reg_B, estado_c, PC, RI,saida);
+        saida->reg_ULA = Calculos_ULA_M(reg_A, reg_B, estado_c, PC, RI, saida);
     }
     if(*estado_c == 8){
         Escrever_Registrador(banco_de_registradores, RI->rd, saida->reg_ULA);
-    }if(*estado_c == 9){
-		Calculos_ULA_M(reg_A, reg_B, estado_c, PC, RI,saida);
-        if(saida->flag == 1){
-			*PC = saida->reg_ULA;
-			}
-    }if(*estado_c == 10){
-        
     }
-    
-    
-    
+    if(*estado_c == 9){
+        Calculos_ULA_M(reg_A, reg_B, estado_c, PC, RI, saida);
+        if(saida->flag == 1){
+            *PC = saida->reg_ULA;
+        }
+    }
+    if(*estado_c == 10){
+        *PC = RI->addr;
+    }
 }
 
 void estado_M(int *estado_c, struct instrucao *RI){
@@ -557,16 +556,18 @@ void estado_M(int *estado_c, struct instrucao *RI){
             break;
 
         case 1:
-         if(RI->opcode == 0) {
+            if(RI->opcode == 0) {
                 *estado_c = 7;
             }
             else if(RI->opcode == 15 || RI->opcode == 11 || RI->opcode == 4) {
                 *estado_c = 2;
-            } else if (RI->opcode == 2){ // op code do jump 
-				*estado_c = 10;
-			} else if (RI->opcode == 8){
-				*estado_c = 9;
-			}
+            }
+            if(RI->opcode == 8) {
+                *estado_c = 9;
+            }
+            if(RI->opcode == 2) {
+                *estado_c = 10;
+            }
 
             break;
 
@@ -603,13 +604,13 @@ void estado_M(int *estado_c, struct instrucao *RI){
         case 8:
             *estado_c = 0;
             break;
-		case 9:
-			*estado_c = 0;
-			break;
-			
+        case 9:
+            *estado_c = 0;
+            break;
         case 10:
-			*estado_c = 0;
-			break;
+            *estado_c = 0;
+            break;
+
 
         default:
             printf("Estado desconhecido!\n");
@@ -618,7 +619,7 @@ void estado_M(int *estado_c, struct instrucao *RI){
 }
 
 
-void imprime_estado(int *reg_dado, struct ULA_saida *saida, int *reg_A, int *reg_B, int *estado_c, struct instrucao *RI, int *banco_de_registradores, int *PC){
+void imprime_estado(int *reg_dado, struct ULA_saida *saida, int *reg_A, int *reg_B, int *estado_c, struct instrucao *RI, int *banco_de_registradores){
         if(*estado_c == 0){
             if (RI->opcode == -1) {}
             else if (RI->opcode == 0) {
@@ -675,12 +676,15 @@ void imprime_estado(int *reg_dado, struct ULA_saida *saida, int *reg_A, int *reg
             Imprimir_BancoRG(banco_de_registradores);
             printf("\tEstado atual [%d]\n", *estado_c);
         }else if(*estado_c == 9){
-			printf("\tUla_flag [%d]\n", saida->flag);
-			printf("\tPC atual [%d]\n", *PC);
+            printf("\tsaida flag [%d]\n", saida->flag);
             printf("\tEstado atual [%d]\n", *estado_c);
-		}}
+        }else if(*estado_c == 10){
+            printf("\tEstado atual [%d]\n", *estado_c);
+        }
 
-int Calculos_ULA_M(int *reg_A, int *reg_B, int *estado_c, int *PC, struct instrucao *RI,struct ULA_saida *saida) { //Executa os c�lculos
+}
+
+int Calculos_ULA_M(int *reg_A, int *reg_B, int *estado_c, int *PC, struct instrucao *RI, struct ULA_saida *saida) { //Executa os c�lculos
 
     int resultado = 0;
 
@@ -731,16 +735,13 @@ int Calculos_ULA_M(int *reg_A, int *reg_B, int *estado_c, int *PC, struct instru
         if(resultado >127 || resultado <-128){
             printf("\tEndereco de memoria invalido!\n");
         }
-    } else if (*estado_c == 9){
-	
-		if(*reg_A == *reg_B){ 
-			saida->flag = 1;
-			}else{
-				saida->flag = 0;
-				}
-		}else if (*estado_c == 10){
-			// jump
-			}
+    }else if(*estado_c == 9){
+        if(*reg_A == *reg_B){
+            saida->flag = 1;
+        }else{
+            saida->flag = 0;
+        }
+    }
 
     return resultado;
 }
