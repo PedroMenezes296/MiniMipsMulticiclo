@@ -55,15 +55,15 @@ void imprime_simulador(int *reg_dado, struct ULA_saida *saida, int *reg_A, int *
 
 void Visualizar_Instrucao_Atual(int *PC, struct instrucao *inst_name);
 
-void Executar_Instrucao_M(int *reg_A, int *reg_B, int *estado_c, int *PC, struct instrucao *RI);
+void Executar_Instrucao_M(int *reg_A, int *reg_B, int *estado_c, int *PC, struct instrucao *RI, struct ULA_saida *saida);
 
 void Ciclo(int *reg_dado, struct ULA_saida *saida, int *reg_A, int *reg_B, int *estado_c, int *PC, struct instrucao *RI, struct instrucao *inst_name,  int *banco_de_registradores);
 
 void estado_M(int *estado_c, struct instrucao *inst_M);
 
-void imprime_estado(int *reg_dado, struct ULA_saida *saida, int *reg_A, int *reg_B, int *estado_c, struct instrucao *RI, int *banco_de_registradores);
+void imprime_estado(int *reg_dado, struct ULA_saida *saida, int *reg_A, int *reg_B, int *estado_c, struct instrucao *RI, int *banco_de_registradores, int *PC);
 
-int Calculos_ULA_M(int *reg_A, int *reg_B, int *estado_c, int *PC, struct instrucao *RI);
+int Calculos_ULA_M(int *reg_A, int *reg_B, int *estado_c, int *PC, struct instrucao *RI, struct ULA_saida *saida);
 
 void Restaurar_Estado(struct estado_salvo *estado, int *PC, int *reg_dado, int *reg_A, int *reg_B, int *estado_c,
                       int *banco_de_registradores, struct instrucao *inst_name,

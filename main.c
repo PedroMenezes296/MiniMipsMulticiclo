@@ -103,8 +103,8 @@ int main(){
                     while (PC < 256 && inst_name[PC].opcode != -1) {
                         Salva_Estado(&PC, inst_name, &estado, banco_de_registradores, &reg_dado, &reg_A, &reg_B, &estado_c, &RI, &copia_RI, &saida, &copia_saida);
                         Ciclo(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &PC, &RI, inst_name, banco_de_registradores);
-                        imprime_estado(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &RI, banco_de_registradores);
-                        Executar_Instrucao_M(&reg_A, &reg_B, &estado_c, &PC, &RI);
+                        imprime_estado(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &RI, banco_de_registradores, &PC);
+                        Executar_Instrucao_M(&reg_A, &reg_B, &estado_c, &PC, &RI,&saida);
                         estado_M(&estado_c, &RI);
                         printf("\tPC = %d\n", PC);
                     }
@@ -117,11 +117,10 @@ int main(){
                 if (memoria_instrucoes_carregada == 1) {
                         Salva_Estado(&PC, inst_name, &estado, banco_de_registradores, &reg_dado, &reg_A, &reg_B, &estado_c, &RI, &copia_RI, &saida, &copia_saida);
                         Ciclo(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &PC, &RI, inst_name, banco_de_registradores);
-                        imprime_estado(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &RI, banco_de_registradores);
-                        Executar_Instrucao_M(&reg_A, &reg_B, &estado_c, &PC, &RI);
+                        imprime_estado(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &RI, banco_de_registradores,&PC);
+                        Executar_Instrucao_M(&reg_A, &reg_B, &estado_c, &PC, &RI, &saida);
                         estado_M(&estado_c, &RI);
-                        printf("\tPC = %d\n", PC);
-
+						printf("\tPC = %d\n", PC);
                 } else {
                     printf("\tMemorias de instrucoes nao foi carregada.\n");
                 }
@@ -133,7 +132,7 @@ int main(){
                 }
                 else{
                      Restaurar_Estado(&estado, &PC, &reg_dado, &reg_A, &reg_B, &estado_c, banco_de_registradores, inst_name, &copia_RI, &copia_saida);
-                     imprime_estado(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &RI, banco_de_registradores);
+                     imprime_estado(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &RI, banco_de_registradores,&PC);
                      printf("\tPC = %d\n", PC);
                 }
 
