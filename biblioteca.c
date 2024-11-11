@@ -266,7 +266,7 @@ void Imprimir_Memorias_Instrucoes(int tamanho, struct instrucao *inst_name) { //
     for (int x = 0; x < 16; x++) {
         for(int y = 0; y < 16; y++) {
             int mem = tamanho + x * 16 + y;
-            if (mem < 256) {
+            if (mem < 256 + tamanho) {
                 printf("Mem[%d] %d\t", mem, inst_name[mem].dado);
                 }
             }
