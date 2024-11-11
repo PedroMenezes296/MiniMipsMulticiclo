@@ -8,12 +8,15 @@ int main(){
     setlocale(LC_ALL, "Portuguese");
 
     //Declara��o de structs
-    struct instrucao *inst_name = malloc(256 * sizeof(struct instrucao)); //alocando dinamicamente a mem�ria para receber 256 espa�os de mem do tipo instrucao
-    struct estado_salvo estado;
+    struct instrucao *inst_name = malloc(512 * sizeof(struct instrucao)); //alocando dinamicamente a mem�ria para receber 256 espa�os de mem do tipo instrucao
     struct ULA_saida saida;
     struct ULA_saida copia_saida;
     struct instrucao RI;
     struct instrucao copia_RI;
+    struct Pilha pilha;
+
+    //inicializando pilha
+    Inicializar_Pilha(&pilha);
 
     //Declara��o de vari�veis
     int num_opcao = 0;                        //Controla o menu
@@ -24,7 +27,7 @@ int main(){
     int reg_dado = 0;
     int memoria_instrucoes_carregada = 0;     //Indica se as mem�rias de instru��es foi carregada
     int banco_de_registradores[8] = {0};      //Inicializa o banco de rg
-    int tamanho = 0;                       //vari�vel utilizada em algumas fun��es da mem�ria de dados
+    int tamanho = 0;                     //vari�vel utilizada em algumas fun��es da mem�ria de dados
 
     //Inicio do menu
     while(num_opcao != 10){
@@ -56,14 +59,12 @@ int main(){
 
             case 2 :
                 if (memoria_instrucoes_carregada == 1) {
-                    printf("********Memoria de Instrucoes e Dados********\n\n");
-                    Imprimir_Memorias_Instrucoes(inst_name);
+                    printf("\t********Memoria de Instrucoes e Dados********\n\n");
+                    Imprimir_Memorias_Instrucoes(tamanho, inst_name);
                 }
                 else {
                     printf("\tMemorias de instrucoes nao carregada.\n\n");
                 }
-                printf("********Memoria de Dados********\n\n");
-                ImprimirMemorias_d(inst_name);
                 break;
 
             case 3 :
@@ -71,19 +72,20 @@ int main(){
                 break;
 
             case 4 :
-                printf("\tPC = %d\n", PC);
+                printf("\t********PC Atual********\n\n");
+                printf("\tPC = %d\n\n", PC);
+                printf("\t********Registradores********\n\n");
                 imprime_simulador(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &RI);
-                Visualizar_Instrucao_Atual(&PC, inst_name);
+                printf("\t********Instrucao Atual********\n\n");
+                Visualizar_Instrucao_Atual(&RI);
                 Imprimir_BancoRG(banco_de_registradores);
                 if (memoria_instrucoes_carregada == 1) {
-                printf("********Memoria de Instrucoes********\n\n");
-                Imprimir_Memorias_Instrucoes(inst_name);
+                printf("\t********Memoria de Instrucoes********\n\n");
+                Imprimir_Memorias_Instrucoes(tamanho, inst_name);
                 }
                 else{
                     printf("\tMemoria de instrucoes nao carregada.\n\n");
                 }
-                printf("********Memoria de Dados********\n\n");
-                ImprimirMemorias_d(inst_name);
                 break;
 
             case 5 :
@@ -102,7 +104,7 @@ int main(){
             case 7 :
                 if (memoria_instrucoes_carregada == 1) {
                     while (PC < 256 && inst_name[PC].opcode != -1) {
-                        Salva_Estado(&PC, inst_name, &estado, banco_de_registradores, &reg_dado, &reg_A, &reg_B, &estado_c, &RI, &copia_RI, &saida, &copia_saida);
+                        Inserir_No(&pilha, &PC, inst_name, banco_de_registradores, &reg_dado, &reg_A, &reg_B, &estado_c, &RI, &copia_RI, &saida, &copia_saida);
                         Ciclo(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &PC, &RI, inst_name, banco_de_registradores);
                         imprime_estado(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &RI, banco_de_registradores);
                         Executar_Instrucao_M(&reg_A, &reg_B, &estado_c, &PC, &RI, &saida);
@@ -116,7 +118,7 @@ int main(){
 
             case 8 :
                 if (memoria_instrucoes_carregada == 1) {
-                        Salva_Estado(&PC, inst_name, &estado, banco_de_registradores, &reg_dado, &reg_A, &reg_B, &estado_c, &RI, &copia_RI, &saida, &copia_saida);
+                        Inserir_No(&pilha, &PC, inst_name, banco_de_registradores, &reg_dado, &reg_A, &reg_B, &estado_c, &RI, &copia_RI, &saida, &copia_saida);
                         Ciclo(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &PC, &RI, inst_name, banco_de_registradores);
                         imprime_estado(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &RI, banco_de_registradores);
                         Executar_Instrucao_M(&reg_A, &reg_B, &estado_c, &PC, &RI, &saida);
@@ -133,7 +135,7 @@ int main(){
                     printf("\tNao e possivel retornar uma instrucao\n\n");
                 }
                 else{
-                     Restaurar_Estado(&estado, &PC, &reg_dado, &reg_A, &reg_B, &estado_c, banco_de_registradores, inst_name, &copia_RI, &copia_saida);
+                     Remover_No(&pilha, &PC, &reg_dado, &reg_A, &reg_B, &estado_c, banco_de_registradores, inst_name, &copia_RI, &copia_saida);
                      imprime_estado(&reg_dado, &saida, &reg_A, &reg_B, &estado_c, &RI, banco_de_registradores);
                      printf("\tPC = %d\n", PC);
                 }
@@ -152,5 +154,6 @@ int main(){
 
     //libera a mem�ria alocada dinamicamente pelo malloc
     free(inst_name);
+    Liberar_Pilha(&pilha);
     return 0;
 }
